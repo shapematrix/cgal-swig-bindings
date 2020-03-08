@@ -1,12 +1,11 @@
 // ------------------------------------------------------------------------------
 // Copyright (c) 2014 GeometryFactory (FRANCE)
-// SPDX-License-Identifier: GPL-3.0-or-later OR LicenseRef-Commercial
+// Distributed under the Boost Software License, Version 1.0. (See accompany-
+// ing file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 // ------------------------------------------------------------------------------
 
-%define BID_DOCSTRING
-"SWIG wrapper for the CGAL Intersecting Sequences of dD Iso-oriented Boxes package provided under the GPL-3.0+ license"
-%enddef
-%module (package="CGAL", docstring=BID_DOCSTRING) CGAL_Box_intersection_d
+
+%module (package="CGAL") CGAL_Box_intersection_d
 
 %include "SWIG_CGAL/common.i"
 Decl_void_type()

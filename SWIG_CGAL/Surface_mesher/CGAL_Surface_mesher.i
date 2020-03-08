@@ -1,12 +1,11 @@
 // ------------------------------------------------------------------------------
 // Copyright (c) 2011 GeometryFactory (FRANCE)
-// SPDX-License-Identifier: GPL-3.0-or-later OR LicenseRef-Commercial
+// Distributed under the Boost Software License, Version 1.0. (See accompany-
+// ing file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 // ------------------------------------------------------------------------------ 
 
-%define SURFACE_MESHER_DOCSTRING
-"SWIG wrapper for the CGAL 3D Surface Mesh Generation package provided under the GPL-3.0+ license"
-%enddef
-%module (package="CGAL", docstring=SURFACE_MESHER_DOCSTRING) CGAL_Surface_mesher
+
+%module (package="CGAL") CGAL_Surface_mesher
 
 %include "SWIG_CGAL/common.i"
 Decl_void_type()

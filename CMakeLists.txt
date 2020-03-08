@@ -33,21 +33,8 @@ enable_testing ()
 add_custom_target (tests)
 
 
-if ( CGAL_FOUND AND ${CGAL_MAJOR_VERSION} GREATER 4 )
-
+if ( CGAL_FOUND )
   include( ${CGAL_USE_FILE} )
-
-  find_package( TBB QUIET )
-  if(TBB_FOUND)
-    if(NOT TARGET Threads::Threads)
-      find_package(Threads REQUIRED)
-    endif()
-    include_directories(${TBB_INCLUDE_DIRS})
-    add_definitions( -DNOMINMAX -DCGAL_LINKED_WITH_TBB )
-  else()
-    message( STATUS "NOTICE: Intel TBB was not found. Parallelism will be disabled." )
-  endif()
-
 
   if ("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
     if(CMAKE_COMPILER_IS_GNUCXX)
@@ -73,9 +60,11 @@ if ( CGAL_FOUND AND ${CGAL_MAJOR_VERSION} GREATER 4 )
       message(STATUS "BUILD_RUBY is set to OFF: no CGAL-bindings for Ruby will be generated.")
     endif()
     if (${BUILD_PYTHON})
-      find_package(PythonInterp)
-      find_package(PythonLibs)
-      if (NOT PYTHONLIBS_FOUND)
+	#AAM  find_package(PythonInterp)
+	#AAM  find_package(PythonLibs)
+	find_package (Python3 COMPONENTS Interpreter Development) #AAM
+#AAM  if (NOT PYTHONLIBS_FOUND)
+if (NOT PYTHON3_FOUND)	#AAM
         SET(BUILD_PYTHON OFF)
         message(WARNING "Python has not been found, CGAL-bindings for Python will not be generated.")
       endif()
@@ -103,18 +92,19 @@ if ( CGAL_FOUND AND ${CGAL_MAJOR_VERSION} GREATER 4 )
     if (BUILD_PYTHON)
       set (PYTHON_OUTDIR_PREFIX "${CMAKE_CURRENT_BINARY_DIR}/build-python" CACHE PATH "PYTHON specific files output directory prefix: the CGAL directory will contain Python generated files and libraries.")
       configure_file (SWIG_CGAL/files/__init__.py "${PYTHON_OUTDIR_PREFIX}/CGAL/__init__.py" @ONLY)
-      if (PYTHON_EXECUTABLE)
+#AAM  if (PYTHON_EXECUTABLE)
+if (PYTHON3_EXECUTABLE)	#AAM
         file (GLOB python_files "${CMAKE_CURRENT_SOURCE_DIR}/examples/python/*.py")
         # exclude blocking matplotlib plotting example
         list (REMOVE_ITEM python_files ${CMAKE_CURRENT_SOURCE_DIR}/examples/python/polygonal_triangulation.py)
         foreach (TESTNAME_SRC ${python_files})
           get_filename_component (TESTNAME ${TESTNAME_SRC} NAME_WE)
-          add_test (NAME pythontest_${TESTNAME} COMMAND ${PYTHON_EXECUTABLE} ${TESTNAME_SRC})
+          add_test (NAME pythontest_${TESTNAME} COMMAND ${PYTHON3_EXECUTABLE} ${TESTNAME_SRC})
           set_tests_properties (pythontest_${TESTNAME} PROPERTIES ENVIRONMENT "PYTHONPATH=${PYTHON_OUTDIR_PREFIX};DATADIR=${CMAKE_CURRENT_SOURCE_DIR}/examples/data")
         endforeach ()
 
         if (NOT DEFINED PYTHON_MODULE_PATH)
-          execute_process (COMMAND ${PYTHON_EXECUTABLE} -c "from distutils import sysconfig; print(sysconfig.get_python_lib(plat_specific=True, prefix='${CMAKE_INSTALL_PREFIX}'))"
+          execute_process (COMMAND ${PYTHON3_EXECUTABLE} -c "from distutils import sysconfig; print(sysconfig.get_python_lib(plat_specific=True, prefix='${CMAKE_INSTALL_PREFIX}'))"
                           OUTPUT_VARIABLE _ABS_PYTHON_MODULE_PATH
                           RESULT_VARIABLE _exit_code
                           OUTPUT_STRIP_TRAILING_WHITESPACE )
@@ -124,7 +114,7 @@ if ( CGAL_FOUND AND ${CGAL_MAJOR_VERSION} GREATER 4 )
             file (RELATIVE_PATH _REL_PYTHON_MODULE_PATH ${CMAKE_INSTALL_PREFIX} ${_ABS_PYTHON_MODULE_PATH})
             set (PYTHON_MODULE_PATH ${_REL_PYTHON_MODULE_PATH})
           else ()
-            message (SEND_ERROR "Could not run ${PYTHON_EXECUTABLE}")
+            message (SEND_ERROR "Could not run ${PYTHON3_EXECUTABLE}")
           endif ()
         endif ()
       endif()
@@ -133,6 +123,16 @@ if ( CGAL_FOUND AND ${CGAL_MAJOR_VERSION} GREATER 4 )
       LINK_DIRECTORIES("${PYTHON_OUTDIR_PREFIX}/CGAL")
       message(STATUS "Found Python libs.")
       message(STATUS "CGAL-SWIG Python files and libraries will be written in ${PYTHON_OUTDIR_PREFIX}/CGAL.")
+
+      # AAM print out project variables
+      # message(STATUS "PYTHON3_INCLUDE_DIRS =  ${PYTHON3_INCLUDE_DIRS}.")
+      # message(STATUS "PYTHON3_LIBRARIES =  ${PYTHON3_LIBRARIES}.")
+      # message(STATUS "Python3_INCLUDE_DIRS =  ${Python3_INCLUDE_DIRS}.")
+      # message(STATUS "Python3_LIBRARIES =  ${Python3_LIBRARIES}.")
+      # message(STATUS "PYTHON3_FOUND =  ${PYTHON3_FOUND}.")
+      # message(STATUS "Python3_FOUND =  ${Python3_FOUND}.")
+      # AAM end
+
     endif()
     if (BUILD_JAVA)
       SET (JAVA_OUTDIR_PREFIX "${CMAKE_CURRENT_BINARY_DIR}/build-java/" CACHE PATH "Java specific files output directory prefix: Java files in CGAL directory, libraries in lib directory.")
@@ -155,15 +155,13 @@ if ( CGAL_FOUND AND ${CGAL_MAJOR_VERSION} GREATER 4 )
 
         foreach (TESTNAME_SRC ${java_files})
           get_filename_component(TESTNAME ${TESTNAME_SRC} NAME_WE)
-          if(CGAL_ImageIO_FOUND OR NOT "${TESTNAME}" STREQUAL "test_surface_mesher")
-            add_custom_target (javatest_${TESTNAME}
-              COMMAND ${Java_JAVAC_EXECUTABLE} ${TESTNAME_SRC} ${dependencies_files} -d ${JAVA_OUTDIR_PREFIX}
-              WORKING_DIRECTORY ${JAVA_OUTDIR_PREFIX})
-            add_dependencies (tests javatest_${TESTNAME})
-            add_test (NAME javatest_${TESTNAME} COMMAND ${Java_JAVA_EXECUTABLE} ${TESTNAME} WORKING_DIRECTORY ${JAVA_OUTDIR_PREFIX})
-            set_tests_properties (javatest_${TESTNAME} PROPERTIES
-              ENVIRONMENT "LD_LIBRARY_PATH=${JAVALIBPATH};DYLD_LIBRARY_PATH=${JAVALIBPATH}")
-          endif()
+          add_custom_target (javatest_${TESTNAME}
+            COMMAND ${Java_JAVAC_EXECUTABLE} ${TESTNAME_SRC} ${dependencies_files} -d ${JAVA_OUTDIR_PREFIX}
+            WORKING_DIRECTORY ${JAVA_OUTDIR_PREFIX})
+          add_dependencies (tests javatest_${TESTNAME})
+          add_test (NAME javatest_${TESTNAME} COMMAND ${Java_JAVA_EXECUTABLE} ${TESTNAME} WORKING_DIRECTORY ${JAVA_OUTDIR_PREFIX})
+          set_tests_properties (javatest_${TESTNAME} PROPERTIES
+            ENVIRONMENT "LD_LIBRARY_PATH=${JAVALIBPATH};DYLD_LIBRARY_PATH=${JAVALIBPATH}")
         endforeach ()
 
         # tests load files from source dir, eg: ../data/oni.xyz
@@ -188,8 +186,13 @@ if ( CGAL_FOUND AND ${CGAL_MAJOR_VERSION} GREATER 4 )
     endif()
     add_subdirectory(SWIG_CGAL/Mesh_3)
     add_subdirectory(SWIG_CGAL/Mesh_2)
-    add_subdirectory(SWIG_CGAL/Interpolation)
-    add_subdirectory(SWIG_CGAL/Convex_hull_2)
+    if (NOT APPLE)	#AAM
+    	add_subdirectory(SWIG_CGAL/Interpolation)
+    	add_subdirectory(SWIG_CGAL/Convex_hull_2)
+    else()
+	message(WARNING "CGAL Interpolation package currently does not compile on Mac OS (AM: TODO: take a look later")
+	message(WARNING "CGAL Convex_hull_2 package currently does not compile on Mac OS (AM: TODO: take a look later")
+    endif()
     add_subdirectory(SWIG_CGAL/Convex_hull_3)
     #filter Voronoi diagram bindings
     find_path(CGAL_VOR_BASIC_H "CGAL/Voronoi_diagram_2/basic.h"  ${CGAL_INCLUDE_DIRS} NO_DEFAULT_PATH)
@@ -199,10 +202,7 @@ if ( CGAL_FOUND AND ${CGAL_MAJOR_VERSION} GREATER 4 )
       add_subdirectory(SWIG_CGAL/Voronoi_diagram_2)
     endif()
     add_subdirectory(SWIG_CGAL/HalfedgeDS)
-    add_subdirectory(SWIG_CGAL/Point_set_3)
     add_subdirectory(SWIG_CGAL/Point_set_processing_3)
-    add_subdirectory(SWIG_CGAL/Shape_detection)
-    add_subdirectory(SWIG_CGAL/Classification)
     add_subdirectory(SWIG_CGAL/Box_intersection_d)
     add_subdirectory(SWIG_CGAL/Advancing_front_surface_reconstruction)
 
@@ -226,5 +226,5 @@ if ( CGAL_FOUND AND ${CGAL_MAJOR_VERSION} GREATER 4 )
     message(STATUS "NOTICE: CGAL-bindings requires the SWIG include files and binary program, and will not be compiled.")
   endif()
 else()
-    message(STATUS "NOTICE: CGAL-bindings requires the CGAL library 5.0 or later, and will not be compiled.")
+    message(STATUS "NOTICE: CGAL-bindings requires the CGAL library, and will not be compiled.")
 endif()

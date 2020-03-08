@@ -1,12 +1,11 @@
 // ------------------------------------------------------------------------------
 // Copyright (c) 2017 GeometryFactory (FRANCE)
-// SPDX-License-Identifier: GPL-3.0-or-later OR LicenseRef-Commercial
+// Distributed under the Boost Software License, Version 1.0. (See accompany-
+// ing file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 // ------------------------------------------------------------------------------
 
-%define CH3_DOCSTRING
-"SWIG wrapper for the CGAL 3D Convex hull package provided under the GPL-3.0+ license"
-%enddef
-%module (package="CGAL", docstring=CH3_DOCSTRING) CGAL_Convex_hull_3
+
+%module (package="CGAL") CGAL_Convex_hull_3
 
 %include "SWIG_CGAL/common.i"
 Decl_void_type()
@@ -56,18 +55,18 @@ SWIG_CGAL_import_Polyhedron_3_SWIG_wrapper
 typedef Wrapper_iterator_helper<Point_3>::input       Point_range;
 typedef Wrapper_iterator_helper<Plane_3>::input       Plane_range;
 
-void convex_hull_3(Point_range& range, Polyhedron_3_SWIG_wrapper& P)
+void convex_hull_3(Point_range range, Polyhedron_3_SWIG_wrapper& P)
 {
   CGAL::convex_hull_3(range.first, range.second, P.get_data());
 }
 
-void halfspace_intersection_3(Plane_range& range, Polyhedron_3_SWIG_wrapper& P)
+void halfspace_intersection_3(Plane_range range, Polyhedron_3_SWIG_wrapper& P)
 {
   std::vector<Plane_3::cpp_base> planes(range.first, range.second);
   CGAL::halfspace_intersection_3(planes.begin(), planes.end(), P.get_data());
 }
 
-void halfspace_intersection_3(Plane_range& range, Polyhedron_3_SWIG_wrapper& P, Point_3& pt)
+void halfspace_intersection_3(Plane_range range, Polyhedron_3_SWIG_wrapper& P, Point_3& pt)
 {
   std::vector<Plane_3::cpp_base> planes(range.first, range.second);
   CGAL::halfspace_intersection_3(planes.begin(), planes.end(), P.get_data(), pt.get_data());

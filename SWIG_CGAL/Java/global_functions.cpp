@@ -1,6 +1,7 @@
 // ------------------------------------------------------------------------------
 // Copyright (c) 2011 GeometryFactory (FRANCE)
-// SPDX-License-Identifier: GPL-3.0-or-later OR LicenseRef-Commercial
+// Distributed under the Boost Software License, Version 1.0. (See accompany-
+// ing file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 // ------------------------------------------------------------------------------ 
 
 
@@ -19,7 +20,7 @@ JNIEnv * JNU_GetEnv() {
   assert(get_cached_jvm()!=NULL);
   jint rc = get_cached_jvm()->GetEnv((void **)&env, JNI_VERSION_1_2);
   if (rc == JNI_EDETACHED)
-    rc = get_cached_jvm()->AttachCurrentThreadAsDaemon((void**)&env, nullptr);
+    throw std::runtime_error("current thread not attached");
   if (rc == JNI_EVERSION)
     throw std::runtime_error("jni version not supported");
   return env;

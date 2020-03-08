@@ -1,6 +1,7 @@
 // ------------------------------------------------------------------------------
 // Copyright (c) 2011 GeometryFactory (FRANCE)
-// SPDX-License-Identifier: GPL-3.0-or-later OR LicenseRef-Commercial
+// Distributed under the Boost Software License, Version 1.0. (See accompany-
+// ing file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 // ------------------------------------------------------------------------------ 
 
 
@@ -11,11 +12,19 @@
 #include <SWIG_CGAL/Kernel/typedefs.h>
 #include <SWIG_CGAL/Kernel/Point_2.h>
 
+#if CGAL_VERSION_NR > 1041000000
 #include <CGAL/Weighted_point_2.h>
+#else
+#include <CGAL/Weighted_point.h>
+#endif
 
 class SWIG_CGAL_KERNEL_DECL Weighted_point_2{
 public:
+  #if CGAL_VERSION_NR > 1041000000
   typedef CGAL::Weighted_point_2<EPIC_Kernel> cpp_base;
+  #else
+  typedef CGAL::Weighted_point<EPIC_Kernel::Point_2,double> cpp_base;
+  #endif
 private:
   cpp_base data;
 public:

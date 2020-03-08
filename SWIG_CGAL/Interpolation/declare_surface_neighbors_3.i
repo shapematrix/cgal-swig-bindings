@@ -1,6 +1,7 @@
 // ------------------------------------------------------------------------------
 // Copyright (c) 2011 GeometryFactory (FRANCE)
-// SPDX-License-Identifier: GPL-3.0-or-later OR LicenseRef-Commercial
+// Distributed under the Boost Software License, Version 1.0. (See accompany-
+// ing file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 // ------------------------------------------------------------------------------ 
 
 
@@ -41,18 +42,15 @@ SWIG_CGAL_declare_generic_output_iterator(Point_3_output_iterator,Point_3_output
 
 %inline %{
   void surface_neighbors_3(Point_range_3 range,const Point_3& p,const Vector_3& normal,iPoint_3_output_iterator out){
-    std::vector<Point_3::cpp_base> points(SWIG_CGAL::get_begin(range),SWIG_CGAL::get_end(range));
-    CGAL::surface_neighbors_3(points.begin(), points.end(), p.get_data(),normal.get_data(),out,EPIC_Kernel());
+    CGAL::surface_neighbors_3(SWIG_CGAL::get_begin(range),SWIG_CGAL::get_end(range),p.get_data(),normal.get_data(),out,EPIC_Kernel());
   }
   
   bool surface_neighbors_certified_3(Point_range_3 range,const Point_3& p,const Vector_3& normal,iPoint_3_output_iterator out){
-    std::vector<Point_3::cpp_base> points(SWIG_CGAL::get_begin(range),SWIG_CGAL::get_end(range));
-    return CGAL::surface_neighbors_certified_3(points.begin(), points.end(),p.get_data(),normal.get_data(),out,EPIC_Kernel()).second;
+    return CGAL::surface_neighbors_certified_3(SWIG_CGAL::get_begin(range),SWIG_CGAL::get_end(range),p.get_data(),normal.get_data(),out,EPIC_Kernel()).second;
   }
 
   bool surface_neighbors_certified_3(Point_range_3 range,const Point_3& p,const Vector_3& normal,double max_distance,iPoint_3_output_iterator out){
-    std::vector<Point_3::cpp_base> points(SWIG_CGAL::get_begin(range),SWIG_CGAL::get_end(range));
-    return CGAL::surface_neighbors_certified_3(points.begin(), points.end(),p.get_data(),normal.get_data(),max_distance,out,EPIC_Kernel()).second;
+    return CGAL::surface_neighbors_certified_3(SWIG_CGAL::get_begin(range),SWIG_CGAL::get_end(range),p.get_data(),normal.get_data(),max_distance,out,EPIC_Kernel()).second;
   }
   
   void surface_neighbors_3(const Delaunay_triangulation_3_SWIG_wrapper& dt,const Point_3& p,const Vector_3& normal,iPoint_3_output_iterator out,const SWIG_Triangulation_3::CGAL_Cell_handle<CGAL_DT3,Point_3>& start){

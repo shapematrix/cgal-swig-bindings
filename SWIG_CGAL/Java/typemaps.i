@@ -1,6 +1,7 @@
 // ------------------------------------------------------------------------------
 // Copyright (c) 2011 GeometryFactory (FRANCE)
-// SPDX-License-Identifier: GPL-3.0-or-later OR LicenseRef-Commercial
+// Distributed under the Boost Software License, Version 1.0. (See accompany-
+// ing file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 // ------------------------------------------------------------------------------
 
 
@@ -363,37 +364,8 @@ SWIG_CGAL_array_of_array_of_double_to_vector_of_vector_of_point_2_typemap_in_adv
 %typemap(out) boost::shared_ptr<std::vector<int> > {
   const jsize size = $1->size();
   jintArray jInts = jenv->NewIntArray(size);
-
-%#if defined(__CYGWIN__) || defined(__MINGW32__) || defined(_WIN32) || defined(__WIN32__) || defined(WIN32) || defined(__WINDOWS__)
-  std::vector<jint> tmp;
-  tmp.resize(size);
-  for (int i = 0 ; i < size; ++i){
-    tmp[i]=(*result)[i];
-  }
-  jenv->SetIntArrayRegion(jInts, 0, size, &((tmp)[0]));
-%#else
   jenv->SetIntArrayRegion(jInts, 0, size, &((*$1)[0]));
-%#endif
   $result=jInts;
-}
-%enddef
-
-//OUT typemap for vector of string into a java array
-%define SWIG_CGAL_vector_of_string_to_array_of_string_typemap_out
-%typemap(jni) boost::shared_ptr<std::vector<std::string> > "jobjectArray"  //replace in jni class
-%typemap(jtype) boost::shared_ptr<std::vector<std::string> > "String[]"   //replace in java wrapping class
-%typemap(jstype) boost::shared_ptr<std::vector<std::string> > "String[]"  //replace in java function args
-%typemap(javaout) boost::shared_ptr<std::vector<std::string> > "{return $jnicall;}" //replace in java function call to wrapped function
-
-%typemap(out) boost::shared_ptr<std::vector<std::string> > {
-  const jsize size = $1->size();
-  jclass myClass = jenv->FindClass("java/lang/String");
-  jobjectArray jstrings = jenv->NewObjectArray(size, myClass, NULL);
-  for (std::size_t i=0;i<$1->size();++i){
-    jstring str = jenv->NewStringUTF((*$1)[i].c_str());
-    jenv->SetObjectArrayElement(jstrings, i, str);
-  }
-  $result=jstrings;
 }
 %enddef
 

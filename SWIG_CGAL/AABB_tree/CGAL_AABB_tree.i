@@ -1,12 +1,11 @@
 // ------------------------------------------------------------------------------
 // Copyright (c) 2011 GeometryFactory (FRANCE)
-// SPDX-License-Identifier: GPL-3.0-or-later OR LicenseRef-Commercial
+// Distributed under the Boost Software License, Version 1.0. (See accompany-
+// ing file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 // ------------------------------------------------------------------------------ 
 
-%define AABB_DOCSTRING
-"SWIG wrapper for the CGAL 3D Fast Intersection and Distance Computation package provided under the GPL-3.0+ license"
-%enddef
-%module (package="CGAL", docstring=AABB_DOCSTRING) CGAL_AABB_tree
+
+%module (package="CGAL") CGAL_AABB_tree
 
 %include "SWIG_CGAL/common.i"
 Decl_void_type()

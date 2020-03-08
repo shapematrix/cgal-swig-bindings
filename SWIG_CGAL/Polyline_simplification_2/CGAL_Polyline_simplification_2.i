@@ -1,12 +1,10 @@
 // ------------------------------------------------------------------------------
 // Copyright (c) 2014 GeometryFactory (FRANCE)
-// SPDX-License-Identifier: GPL-3.0-or-later OR LicenseRef-Commercial
+// Distributed under the Boost Software License, Version 1.0. (See accompany-
+// ing file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 // ------------------------------------------------------------------------------
 
-%define POLYLINE_SIMPL_DOCSTRING
-"SWIG wrapper for the CGAL 2D Polyline Simplification package provided under the GPL-3.0+ license"
-%enddef
-%module(package="CGAL", docstring=POLYLINE_SIMPL_DOCSTRING) CGAL_Polyline_simplification_2
+%module CGAL_Polyline_simplification_2
 
 %include "SWIG_CGAL/common.i"
 Decl_void_type()
@@ -106,26 +104,14 @@ SWIG_CGAL_set_wrapper_iterator_helper_output(Point_2)
 %template(Stop_below_count_threshold) Stop_below_count_threshold_wrapper<PS_CDTP2>;
 
 %include "SWIG_CGAL/Polyline_simplification_2/macros.i"
-declare_simply_functions_cdt_and_polygon(Hybrid_squared_distance_cost_wrapper<PS_CDTP2>,Stop_above_cost_threshold_wrapper<PS_CDTP2>)
-declare_simply_functions_cdt_and_polygon(Hybrid_squared_distance_cost_wrapper<PS_CDTP2>,Stop_below_count_ratio_threshold_wrapper<PS_CDTP2>)
-declare_simply_functions_cdt_and_polygon(Hybrid_squared_distance_cost_wrapper<PS_CDTP2>,Stop_below_count_threshold_wrapper<PS_CDTP2>)
+declare_simply_functions(Hybrid_squared_distance_cost_wrapper<PS_CDTP2>,Stop_above_cost_threshold_wrapper<PS_CDTP2>)
+declare_simply_functions(Hybrid_squared_distance_cost_wrapper<PS_CDTP2>,Stop_below_count_ratio_threshold_wrapper<PS_CDTP2>)
+declare_simply_functions(Hybrid_squared_distance_cost_wrapper<PS_CDTP2>,Stop_below_count_threshold_wrapper<PS_CDTP2>)
 
-declare_simply_functions_cdt_and_polygon(Scaled_squared_distance_cost_wrapper<PS_CDTP2>,Stop_above_cost_threshold_wrapper<PS_CDTP2>)
-declare_simply_functions_cdt_and_polygon(Scaled_squared_distance_cost_wrapper<PS_CDTP2>,Stop_below_count_ratio_threshold_wrapper<PS_CDTP2>)
-declare_simply_functions_cdt_and_polygon(Scaled_squared_distance_cost_wrapper<PS_CDTP2>,Stop_below_count_threshold_wrapper<PS_CDTP2>)
+declare_simply_functions(Scaled_squared_distance_cost_wrapper<PS_CDTP2>,Stop_above_cost_threshold_wrapper<PS_CDTP2>)
+declare_simply_functions(Scaled_squared_distance_cost_wrapper<PS_CDTP2>,Stop_below_count_ratio_threshold_wrapper<PS_CDTP2>)
+declare_simply_functions(Scaled_squared_distance_cost_wrapper<PS_CDTP2>,Stop_below_count_threshold_wrapper<PS_CDTP2>)
 
-declare_simply_functions_cdt_and_polygon(Squared_distance_cost_wrapper<PS_CDTP2>,Stop_above_cost_threshold_wrapper<PS_CDTP2>)
-declare_simply_functions_cdt_and_polygon(Squared_distance_cost_wrapper<PS_CDTP2>,Stop_below_count_ratio_threshold_wrapper<PS_CDTP2>)
-declare_simply_functions_cdt_and_polygon(Squared_distance_cost_wrapper<PS_CDTP2>,Stop_below_count_threshold_wrapper<PS_CDTP2>)
-
-declare_simply_functions_point_range(Hybrid_squared_distance_cost_wrapper<PS_CDTP2>,Stop_above_cost_threshold_wrapper<PS_CDTP2>)
-declare_simply_functions_point_range(Hybrid_squared_distance_cost_wrapper<PS_CDTP2>,Stop_below_count_ratio_threshold_wrapper<PS_CDTP2>)
-declare_simply_functions_point_range(Hybrid_squared_distance_cost_wrapper<PS_CDTP2>,Stop_below_count_threshold_wrapper<PS_CDTP2>)
-
-declare_simply_functions_point_range(Scaled_squared_distance_cost_wrapper<PS_CDTP2>,Stop_above_cost_threshold_wrapper<PS_CDTP2>)
-declare_simply_functions_point_range(Scaled_squared_distance_cost_wrapper<PS_CDTP2>,Stop_below_count_ratio_threshold_wrapper<PS_CDTP2>)
-declare_simply_functions_point_range(Scaled_squared_distance_cost_wrapper<PS_CDTP2>,Stop_below_count_threshold_wrapper<PS_CDTP2>)
-
-declare_simply_functions_point_range(Squared_distance_cost_wrapper<PS_CDTP2>,Stop_above_cost_threshold_wrapper<PS_CDTP2>)
-declare_simply_functions_point_range(Squared_distance_cost_wrapper<PS_CDTP2>,Stop_below_count_ratio_threshold_wrapper<PS_CDTP2>)
-declare_simply_functions_point_range(Squared_distance_cost_wrapper<PS_CDTP2>,Stop_below_count_threshold_wrapper<PS_CDTP2>)
+declare_simply_functions(Squared_distance_cost_wrapper<PS_CDTP2>,Stop_above_cost_threshold_wrapper<PS_CDTP2>)
+declare_simply_functions(Squared_distance_cost_wrapper<PS_CDTP2>,Stop_below_count_ratio_threshold_wrapper<PS_CDTP2>)
+declare_simply_functions(Squared_distance_cost_wrapper<PS_CDTP2>,Stop_below_count_threshold_wrapper<PS_CDTP2>)

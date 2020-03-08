@@ -1,6 +1,7 @@
 // ------------------------------------------------------------------------------
 // Copyright (c) 2011 GeometryFactory (FRANCE)
-// SPDX-License-Identifier: GPL-3.0-or-later OR LicenseRef-Commercial
+// Distributed under the Boost Software License, Version 1.0. (See accompany-
+// ing file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 // ------------------------------------------------------------------------------ 
 
 
@@ -84,14 +85,6 @@ struct Iterator_helper<double>{
   static double convert(const T& i){  return *i; }
   static double default_value(){return 0.;}
 };
-
-template<>
-struct Iterator_helper<int>{
-  template <class T>
-  static int convert(const T& i){  return *i; }
-  static int default_value(){return -1;}
-};
-
 #endif
 
 
@@ -113,9 +106,6 @@ public:
     Cpp_iterator cur_,
     Cpp_iterator end_
   ):cur(cur_),end(end_){}
-
-  Cpp_iterator get_cur() const { return cur; }
-  Cpp_iterator get_end() const { return end; }
   #endif
     
   #ifdef SWIGPYTHON

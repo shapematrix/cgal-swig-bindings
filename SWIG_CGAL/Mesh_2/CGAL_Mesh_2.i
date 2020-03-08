@@ -1,12 +1,11 @@
 // ------------------------------------------------------------------------------
 // Copyright (c) 2011 GeometryFactory (FRANCE)
-// SPDX-License-Identifier: GPL-3.0-or-later OR LicenseRef-Commercial
+// Distributed under the Boost Software License, Version 1.0. (See accompany-
+// ing file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 // ------------------------------------------------------------------------------
 
-%define MESH2_DOCSTRING
-"SWIG wrapper for the CGAL 2D Mesh Generation package provided under the GPL-3.0+ license"
-%enddef
-%module (package="CGAL", docstring=MESH2_DOCSTRING) CGAL_Mesh_2
+
+%module (package="CGAL") CGAL_Mesh_2
 
 %include "SWIG_CGAL/common.i"
 Decl_void_type()
@@ -119,10 +118,12 @@ declare_refine_global_functions(Mesh_2_Constrained_Delaunay_triangulation_plus_2
 
 
 %include "CGAL/version.h"
+#if CGAL_VERSION_NR > 1040601000
 %typemap(javaimports)  Mesh_2_parameters %{import CGAL.Kernel.Point_2; import java.util.Iterator;%}
 %include "SWIG_CGAL/Mesh_2/parameters.h"
 declare_lloyd_2_global_functions(Mesh_2_Constrained_Delaunay_triangulation_2_SWIG_wrapper)
 declare_lloyd_2_global_functions(Mesh_2_Constrained_Delaunay_triangulation_plus_2_SWIG_wrapper)
+#endif
 
 #ifdef SWIGJAVA
 %include "SWIG_CGAL/Mesh_2/java_extensions.i"

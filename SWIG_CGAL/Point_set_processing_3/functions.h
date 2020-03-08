@@ -1,192 +1,367 @@
 // ------------------------------------------------------------------------------
 // Copyright (c) 2013 GeometryFactory (FRANCE)
-// SPDX-License-Identifier: GPL-3.0-or-later OR LicenseRef-Commercial
+// Distributed under the Boost Software License, Version 1.0. (See accompany-
+// ing file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 // ------------------------------------------------------------------------------
 
 #ifndef SWIG_CGAL_POINT_SET_PROCESSING_3_H
 #define SWIG_CGAL_POINT_SET_PROCESSING_3_H
 
+#include <SWIG_CGAL/Common/Wrapper_iterator_helper.h>
 #include <SWIG_CGAL/Kernel/Point_3.h>
 #include <SWIG_CGAL/Kernel/Vector_3.h>
-#include <SWIG_CGAL/Point_set_3/Point_set_3.h>
 
-#include <CGAL/bilateral_smooth_point_set.h>
 #include <CGAL/compute_average_spacing.h>
-#include <CGAL/edge_aware_upsample_point_set.h>
-#include <CGAL/estimate_scale.h>
 #include <CGAL/grid_simplify_point_set.h>
-#include <CGAL/hierarchy_simplify_point_set.h>
-#include <CGAL/jet_estimate_normals.h>
 #include <CGAL/jet_smooth_point_set.h>
-#include <CGAL/mst_orient_normals.h>
+#include <CGAL/jet_estimate_normals.h>
+#include <CGAL/remove_outliers.h>
 #include <CGAL/pca_estimate_normals.h>
 #include <CGAL/random_simplify_point_set.h>
-#include <CGAL/remove_outliers.h>
-#include <CGAL/vcm_estimate_normals.h>
-#include <CGAL/wlop_simplify_and_regularize_point_set.h>
+#include <CGAL/mst_orient_normals.h>
+#include <CGAL/IO/read_xyz_points.h>
+#include <CGAL/IO/read_off_points.h>
+#include <CGAL/IO/write_xyz_points.h>
+#include <CGAL/IO/write_off_points.h>
 
-#ifdef CGAL_LINKED_WITH_TBB
-typedef CGAL::Parallel_tag Concurrency_tag;
+
+#if CGAL_VERSION_NR >= 1040800000
+#define DFT <CGAL::Sequential_tag>
 #else
-typedef CGAL::Sequential_tag Concurrency_tag;
+#define DFT
 #endif
 
-void bilateral_smooth_point_set (Point_set_3_wrapper<CGAL_PS3> point_set, int k,
-                                 double neighbor_radius = 0.,
-                                 double sharpness_angle = 30.)
+double compute_average_spacing(Wrapper_iterator_helper<Point_3>::input point_range, int k)
 {
-  CGAL::bilateral_smooth_point_set<Concurrency_tag>
-    (point_set.get_data(), k,
-     point_set.get_data().parameters().neighbor_radius(neighbor_radius).
-     sharpness_angle(sharpness_angle));
+  return CGAL::compute_average_spacing DFT (
+      #if CGAL_VERSION_MAJOR < 5
+        point_range.begin(), point_range.end(),
+      #else
+        point_range,
+      #endif
+         k);
 }
 
-double compute_average_spacing(Point_set_3_wrapper<CGAL_PS3> point_set, int k)
+/// Simplification functions
+int grid_simplify_point_set ( Wrapper_iterator_helper<Point_3>::input point_range, double epsilon )
 {
-  return CGAL::compute_average_spacing<Concurrency_tag> (point_set.get_data(), k);
+  typedef Wrapper_iterator_helper<Point_3>::input::first_type Iterator;
+  std::vector<Point_3::cpp_base*> points_ptr;
+//save the pointer to the original points
+  for (Iterator it=point_range.first; it!=point_range.second; ++it)
+    points_ptr.push_back( &(*it) );
+//make a copy of the points to apply the algorithm on
+  std::size_t nb_pts=points_ptr.size();
+  std::vector<Point_3::cpp_base> points;
+  points.reserve(nb_pts);
+  for (std::size_t i=0; i<nb_pts; ++i) points.push_back( *points_ptr[i] );
+//CGAL function call
+  std::vector<Point_3::cpp_base>::iterator result =
+    CGAL::grid_simplify_point_set(
+      #if CGAL_VERSION_MAJOR < 5
+        points.begin(), points.end(),
+      #else
+        points,
+      #endif
+        epsilon);
+//copy the points back into the original points
+  for (std::size_t i=0; i<nb_pts; ++i) *points_ptr[i] = points[i];
+
+  return (int) std::distance(points.begin(), result);
 }
 
-void edge_aware_upsample_point_set (Point_set_3_wrapper<CGAL_PS3> point_set,
-                                    double sharpness_angle = 30.,
-                                    double edge_sensitivity = 1.,
-                                    double neighbor_radius = -1.,
-                                    int number_of_output_points = 1000)
+int random_simplify_point_set ( Wrapper_iterator_helper<Point_3>::input point_range, double removed_percentage )
 {
-  CGAL::edge_aware_upsample_point_set<Concurrency_tag>
-    (point_set.get_data(),
-     boost::make_function_output_iterator
-     ([&](const std::pair<EPIC_Kernel::Point_3, EPIC_Kernel::Vector_3>& p)
-      {
-        point_set.get_data().insert (p.first, p.second);
-      }),
-     point_set.get_data().parameters().sharpness_angle(sharpness_angle).
-     edge_sensitivity(edge_sensitivity).
-     neighbor_radius(neighbor_radius).
-     number_of_output_points(number_of_output_points));
+  typedef Wrapper_iterator_helper<Point_3>::input::first_type Iterator;
+  std::vector<Point_3::cpp_base*> points_ptr;
+//save the pointer to the original points
+  for (Iterator it=point_range.first; it!=point_range.second; ++it)
+    points_ptr.push_back( &(*it) );
+//make a copy of the points to apply the algorithm on
+  std::size_t nb_pts=points_ptr.size();
+  std::vector<Point_3::cpp_base> points;
+  points.reserve(nb_pts);
+  for (std::size_t i=0; i<nb_pts; ++i) points.push_back( *points_ptr[i] );
+//CGAL function call
+  std::vector<Point_3::cpp_base>::iterator result =
+    CGAL::random_simplify_point_set(
+      #if CGAL_VERSION_MAJOR < 5
+        points.begin(), points.end(),
+      #else
+        points,
+      #endif
+         removed_percentage);
+//copy the points back into the original points
+  for (std::size_t i=0; i<nb_pts; ++i) *points_ptr[i] = points[i];
+
+  return (int) std::distance(points.begin(), result);
 }
 
-int estimate_global_k_neighbor_scale (Point_set_3_wrapper<CGAL_PS3> point_set)
+
+int remove_outliers (Wrapper_iterator_helper<Point_3>::input point_range, int k, double threshold_percent)
 {
-  return CGAL::estimate_global_k_neighbor_scale (point_set.get_data());
+  typedef Wrapper_iterator_helper<Point_3>::input::first_type Iterator;
+  std::vector<Point_3::cpp_base*> points_ptr;
+//save the pointer to the original points
+  for (Iterator it=point_range.first; it!=point_range.second; ++it)
+    points_ptr.push_back( &(*it) );
+//make a copy of the points to apply the algorithm on
+  std::size_t nb_pts=points_ptr.size();
+  std::vector<Point_3::cpp_base> points;
+  points.reserve(nb_pts);
+  for (std::size_t i=0; i<nb_pts; ++i) points.push_back( *points_ptr[i] );
+//CGAL function call
+  std::vector<Point_3::cpp_base>::iterator result =
+      #if CGAL_VERSION_MAJOR < 5
+      CGAL::remove_outliers(points.begin(), points.end(), k, threshold_percent);
+      #else
+        CGAL::remove_outliers(
+        points, k, CGAL::parameters::threshold_percent(threshold_percent));
+      #endif
+//copy the points back into the original points
+  for (std::size_t i=0; i<nb_pts; ++i) *points_ptr[i] = points[i];
+
+  return (int) std::distance(points.begin(), result);
 }
 
-double estimate_global_range_scale (Point_set_3_wrapper<CGAL_PS3> point_set)
+/// Smoothing functions
+void jet_smooth_point_set (Wrapper_iterator_helper<Point_3>::input point_range,unsigned int nb_neighbors, unsigned int degree_fitting=2, unsigned int degree_monge=2)
 {
-  return CGAL::estimate_global_range_scale (point_set.get_data(), point_set.get_data().parameters());
+  typedef Wrapper_iterator_helper<Point_3>::input::first_type Iterator;
+  std::vector<Point_3::cpp_base*> points_ptr;
+//save the pointer to the original points
+  for (Iterator it=point_range.first; it!=point_range.second; ++it)
+    points_ptr.push_back( &(*it) );
+//make a copy of the points to apply the algorithm on
+  std::size_t nb_pts=points_ptr.size();
+  std::vector<Point_3::cpp_base> points;
+  points.reserve(nb_pts);
+  for (std::size_t i=0; i<nb_pts; ++i) points.push_back( *points_ptr[i] );
+//CGAL function call
+#if CGAL_VERSION_MAJOR < 5
+  CGAL::jet_smooth_point_set DFT (points.begin(), points.end(),
+        nb_neighbors, degree_fitting, degree_monge);
+      #else
+  CGAL::jet_smooth_point_set DFT (points,
+        nb_neighbors,CGAL::parameters::degree_fitting(degree_fitting).degree_monge(degree_monge));
+      #endif
+//copy the points back into the original points
+  for (std::size_t i=0; i<nb_pts; ++i) *points_ptr[i] = points[i];
 }
 
-// TODO if needed: estimate local scales
-
-void grid_simplify_point_set (Point_set_3_wrapper<CGAL_PS3> point_set, double epsilon)
+/// Normal estimation functions
+void jet_estimate_normals (Wrapper_iterator_helper<Point_3>::input point_range, Wrapper_iterator_helper<Vector_3>::output normal_writer, unsigned int k, unsigned int degree_fitting=2)
 {
-  point_set.get_data().remove_from
-    (CGAL::grid_simplify_point_set (point_set.get_data(), epsilon));
+  std::vector< std::pair<Point_3::cpp_base, Vector_3::cpp_base> > input;
+  typedef Wrapper_iterator_helper<Point_3>::input::first_type Iterator;
+  Vector_3::cpp_base normal = Vector_3::cpp_base();
+  for (Iterator it=point_range.first; it!=point_range.second; ++it)
+    input.push_back( std::make_pair(*it, normal) );
+
+  CGAL::First_of_pair_property_map< std::pair<Point_3::cpp_base, Vector_3::cpp_base > > point_pmap;
+  CGAL::Second_of_pair_property_map< std::pair<Point_3::cpp_base, Vector_3::cpp_base > > normal_pmap;
+#if CGAL_VERSION_MAJOR < 5
+      CGAL::jet_estimate_normals DFT (input.begin(), input.end(), point_pmap, normal_pmap, k, degree_fitting );
+#else
+  CGAL::jet_estimate_normals DFT (input, k, CGAL::parameters::point_map(point_pmap).normal_map(normal_pmap).degree_fitting(degree_fitting));
+#endif
+
+  //copy the normal inside the output iterator
+  std::size_t nb_pts=input.size();
+  for(std::size_t i=0; i<nb_pts; ++i) *normal_writer++=input[i].second;
 }
 
-void hierarchy_simplify_point_set (Point_set_3_wrapper<CGAL_PS3> point_set,
-                                   int size = 10,
-                                   double maximum_variation = 1./3.)
+int mst_orient_normals (Wrapper_iterator_helper<Point_3>::input point_range, Wrapper_iterator_helper<Vector_3>::input normal_range, unsigned int k)
 {
-  point_set.get_data().remove_from
-    (CGAL::hierarchy_simplify_point_set (point_set.get_data(),
-                                         point_set.get_data().parameters().size(size).
-                                         maximum_variation(maximum_variation)));
+  std::vector< std::pair<Point_3::cpp_base, Vector_3::cpp_base> > input;
+  std::vector< std::pair<Point_3::cpp_base*, Vector_3::cpp_base*> > ptrs;
+
+  typedef Wrapper_iterator_helper<Point_3>::input::first_type PointIterator;
+  typedef Wrapper_iterator_helper<Vector_3>::input::first_type VectorIterator;
+
+  VectorIterator nit=normal_range.first;
+  for (PointIterator pit=point_range.first; pit!=point_range.second; ++pit, ++nit)
+  {
+    input.push_back( std::make_pair(*pit, *nit) );
+    ptrs.push_back( std::make_pair(&(*pit), &(*nit)) );
+  }
+
+  CGAL::First_of_pair_property_map< std::pair<Point_3::cpp_base, Vector_3::cpp_base > > point_pmap;
+  CGAL::Second_of_pair_property_map< std::pair<Point_3::cpp_base, Vector_3::cpp_base > > normal_pmap;
+
+  std::vector< std::pair<Point_3::cpp_base, Vector_3::cpp_base> >::iterator result =
+#if CGAL_VERSION_MAJOR < 5
+      CGAL::mst_orient_normals(input.begin(), input.end(), point_pmap, normal_pmap, k);
+#else
+      CGAL::mst_orient_normals(input, k, CGAL::parameters::point_map(point_pmap).normal_map(normal_pmap));
+#endif
+
+  //copy the normal inside the output iterator
+  std::size_t nb_pts=input.size();
+  for(std::size_t i=0; i<nb_pts; ++i)
+  {
+    *ptrs[i].first=input[i].first;
+    *ptrs[i].second=input[i].second;
+  }
+
+  return (int) std::distance(input.begin(), result);
 }
 
-void jet_estimate_normals (Point_set_3_wrapper<CGAL_PS3> point_set, int k,
-                           double neighbor_radius = 0.,
-                           int degree_fitting = 2)
+void pca_estimate_normals (Wrapper_iterator_helper<Point_3>::input point_range, Wrapper_iterator_helper<Vector_3>::output normal_writer, unsigned int k)
 {
-  point_set.get_data().add_normal_map();
-  CGAL::jet_estimate_normals<Concurrency_tag>
-    (point_set.get_data(), k,
-     point_set.get_data().parameters().neighbor_radius (neighbor_radius).
-     degree_fitting (degree_fitting));
+  std::vector< std::pair<Point_3::cpp_base, Vector_3::cpp_base> > input;
+  typedef Wrapper_iterator_helper<Point_3>::input::first_type Iterator;
+  Vector_3::cpp_base normal = Vector_3::cpp_base();
+  for (Iterator it=point_range.first; it!=point_range.second; ++it)
+    input.push_back( std::make_pair(*it, normal) );
+
+  CGAL::First_of_pair_property_map< std::pair<Point_3::cpp_base, Vector_3::cpp_base > > point_pmap;
+  CGAL::Second_of_pair_property_map< std::pair<Point_3::cpp_base, Vector_3::cpp_base > > normal_pmap;
+#if CGAL_VERSION_MAJOR < 5
+  CGAL::pca_estimate_normals DFT (input.begin(), input.end(), point_pmap, normal_pmap, k);
+#else
+  CGAL::pca_estimate_normals DFT (input, k, CGAL::parameters::point_map(point_pmap).normal_map(normal_pmap));
+#endif
+
+  //copy the normal inside the output iterator
+  std::size_t nb_pts=input.size();
+  for(std::size_t i=0; i<nb_pts; ++i) *normal_writer++=input[i].second;
 }
 
-void jet_smooth_point_set (Point_set_3_wrapper<CGAL_PS3> point_set, int k,
-                           double neighbor_radius = 0.,
-                           int degree_fitting = 2,
-                           int degree_monge = 2)
+
+/// I/O functions on points
+#include <fstream>
+
+#ifndef SWIG
+namespace CGAL{
+
+template <>
+struct value_type_traits< Wrapper_iterator_helper< ::Point_3 >::output >
 {
-  CGAL::jet_smooth_point_set<Concurrency_tag>
-    (point_set.get_data(), k,
-     point_set.get_data().parameters().neighbor_radius(neighbor_radius).
-     degree_fitting(degree_fitting).
-     degree_monge(degree_monge));
+  typedef ::Point_3::cpp_base type;
+};
+
+}
+#endif //SWIG
+
+
+bool read_off_points(const char* fname, Wrapper_iterator_helper<Point_3>::output output)
+{
+  std::ifstream input(fname);
+  return CGAL::read_off_points(input, output);
 }
 
-void mst_orient_normals (Point_set_3_wrapper<CGAL_PS3> point_set, int k,
-                         double neighbor_radius = 0.,
-                         typename Point_set_3_wrapper<CGAL_PS3>::Int_map
-                         constrained_map = typename Point_set_3_wrapper<CGAL_PS3>::Int_map())
+bool read_xyz_points (const char* fname, Wrapper_iterator_helper<Point_3>::output output)
 {
-  if (constrained_map.is_valid())
-    point_set.get_data().remove_from
-      (CGAL::mst_orient_normals
-       (point_set.get_data(), k,
-        point_set.get_data().parameters().neighbor_radius (neighbor_radius).
-        point_is_constrained_map(constrained_map.get_data())));
-  else
-    point_set.get_data().remove_from
-      (CGAL::mst_orient_normals
-       (point_set.get_data(), k,
-        point_set.get_data().parameters().neighbor_radius (neighbor_radius)));
+  std::ifstream input(fname);
+  return CGAL::read_xyz_points(input, output);
 }
 
-void pca_estimate_normals (Point_set_3_wrapper<CGAL_PS3> point_set, int k,
-                           double neighbor_radius = 0.)
+bool write_off_points (const char* fname, Wrapper_iterator_helper<Point_3>::input input)
 {
-  point_set.get_data().add_normal_map();
-  CGAL::pca_estimate_normals<Concurrency_tag>
-    (point_set.get_data(), k, point_set.get_data().parameters().neighbor_radius(neighbor_radius));
+  std::ofstream output(fname);
+  return CGAL::write_off_points(output, input.first, input.second);
 }
 
-void random_simplify_point_set (Point_set_3_wrapper<CGAL_PS3> point_set, double removed_percentage)
+bool write_xyz_points (const char* fname, Wrapper_iterator_helper<Point_3>::input input)
 {
-  point_set.get_data().remove_from
-    (CGAL::random_simplify_point_set (point_set.get_data(), removed_percentage));
+  std::ofstream output(fname);
+  return CGAL::write_xyz_points(output, input.first, input.second);
 }
 
-void remove_outliers (Point_set_3_wrapper<CGAL_PS3> point_set, int k,
-                      double neighbor_radius = 0.,
-                      double threshold_percent = 10.,
-                      double threshold_distance = 0.)
+/// I/O functions on points and normals
+
+#ifndef SWIG
+
+//VP stands for value_type_pair, OP for OutputIterator_pair
+template <class VP, class OP>
+class Pair_dispatch_output_iterator: public OP{
+  typedef Pair_dispatch_output_iterator<VP,OP> Self;
+
+public:
+  typedef VP Value_type_tuple;
+  typedef OP Iterator_tuple;
+  typedef std::output_iterator_tag iterator_category;
+  typedef Value_type_tuple         value_type; //hack to avoid the need of value_type_traits specialization
+  typedef void                     difference_type;
+  typedef void                     pointer;
+  typedef void                     reference;
+
+
+  Self& operator*(){ return *this; }
+  Self& operator++(){ return *this; }
+  Self& operator++(int){ return *this; }
+
+  Pair_dispatch_output_iterator(typename OP::first_type out1, typename OP::second_type out2):OP(out1,out2){}
+
+  //Added because required by MSVC10
+  Pair_dispatch_output_iterator(const Self& other):
+    Iterator_tuple(static_cast<const Iterator_tuple&>(other))
+  {}
+
+  Self& operator=(const VP& pair){
+    *(this->first)++=pair.first;
+    *(this->second)++=pair.second;
+    return *this;
+  }
+
+  Self& operator=(const Self& s){
+    static_cast< Iterator_tuple& >(*this) = static_cast< const Iterator_tuple& >(s);
+    return *this;
+  }
+};
+#endif //SWIG
+
+#include <CGAL/iterator.h>
+bool read_xyz_points_and_normals (const char* fname, Wrapper_iterator_helper<Point_3>::output point_writer, Wrapper_iterator_helper<Vector_3>::output normal_writer)
 {
-  point_set.get_data().remove_from
-    (CGAL::remove_outliers (point_set.get_data(), k,
-                            point_set.get_data().parameters().neighbor_radius(neighbor_radius).
-                            threshold_percent(threshold_percent).
-                            threshold_distance(threshold_distance)));
+  typedef Pair_dispatch_output_iterator<
+    std::pair< Point_3::cpp_base, Vector_3::cpp_base >,
+    std::pair< Wrapper_iterator_helper<Point_3>::output, Wrapper_iterator_helper<Vector_3>::output >
+  > OutputIterator;
+
+  std::ifstream input(fname);
+  CGAL::First_of_pair_property_map< std::pair<Point_3::cpp_base, Vector_3::cpp_base > > point_pmap;
+  CGAL::Second_of_pair_property_map< std::pair<Point_3::cpp_base, Vector_3::cpp_base > > normal_pmap;
+  return CGAL::read_xyz_points_and_normals(input, OutputIterator(point_writer, normal_writer), point_pmap, normal_pmap);
 }
 
-// TODO: structure_point_set() if/once Shape_detection is wrapped
-
-void vcm_estimate_normals (Point_set_3_wrapper<CGAL_PS3> point_set,
-                           double offset_radius, double convolution_radius, int k = 0)
+bool read_off_points_and_normals (const char* fname, Wrapper_iterator_helper<Point_3>::output point_writer, Wrapper_iterator_helper<Vector_3>::output normal_writer)
 {
-  point_set.get_data().add_normal_map();
-  if (k == 0)
-    CGAL::vcm_estimate_normals (point_set.get_data(), offset_radius, convolution_radius);
-  else
-    CGAL::vcm_estimate_normals (point_set.get_data(), offset_radius, (unsigned int)k);
+  typedef Pair_dispatch_output_iterator<
+    std::pair< Point_3::cpp_base, Vector_3::cpp_base >,
+    std::pair< Wrapper_iterator_helper<Point_3>::output, Wrapper_iterator_helper<Vector_3>::output >
+  > OutputIterator;
+
+  std::ifstream input(fname);
+  CGAL::First_of_pair_property_map< std::pair<Point_3::cpp_base, Vector_3::cpp_base > > point_pmap;
+  CGAL::Second_of_pair_property_map< std::pair<Point_3::cpp_base, Vector_3::cpp_base > > normal_pmap;
+  return CGAL::read_off_points_and_normals(input, OutputIterator(point_writer, normal_writer), point_pmap, normal_pmap);
 }
 
-void wlop_simplify_and_regularize_point_set (Point_set_3_wrapper<CGAL_PS3> input,
-                                             Point_set_3_wrapper<CGAL_PS3> output,
-                                             double select_percentage = 5.,
-                                             double neighbor_radius = -1.,
-                                             int number_of_iterations = 35,
-                                             bool require_uniform_sampling = false)
+#include <boost/iterator/zip_iterator.hpp>
+bool write_off_points_and_normals (const char* fname, Wrapper_iterator_helper<Point_3>::input points, Wrapper_iterator_helper<Vector_3>::input normals)
 {
-  CGAL::wlop_simplify_and_regularize_point_set<Concurrency_tag>
-    (input.get_data(),
-     output.get_data().point_back_inserter(),
-     input.get_data().parameters().select_percentage(select_percentage).
-     neighbor_radius(neighbor_radius).
-     number_of_iterations(number_of_iterations).
-     require_uniform_sampling(require_uniform_sampling));
+  std::ofstream output(fname);
+  CGAL::Nth_of_tuple_property_map< 0, boost::tuple<Point_3::cpp_base, Vector_3::cpp_base > > point_pmap;
+  CGAL::Nth_of_tuple_property_map< 1, boost::tuple<Point_3::cpp_base, Vector_3::cpp_base > > normal_pmap;
+  return CGAL::write_off_points_and_normals(  output,
+                                              boost::make_zip_iterator(boost::make_tuple(points.first, normals.first)),
+                                              boost::make_zip_iterator(boost::make_tuple(points.second, normals.second)),
+                                              point_pmap, normal_pmap );
 }
 
+bool write_xyz_points_and_normals (const char* fname, Wrapper_iterator_helper<Point_3>::input points, Wrapper_iterator_helper<Vector_3>::input normals)
+{
+  std::ofstream output(fname);
+  CGAL::Nth_of_tuple_property_map< 0, boost::tuple<Point_3::cpp_base, Vector_3::cpp_base > > point_pmap;
+  CGAL::Nth_of_tuple_property_map< 1, boost::tuple<Point_3::cpp_base, Vector_3::cpp_base > > normal_pmap;
+  return CGAL::write_xyz_points_and_normals(  output,
+                                              boost::make_zip_iterator(boost::make_tuple(points.first, normals.first)),
+                                              boost::make_zip_iterator(boost::make_tuple(points.second, normals.second)),
+                                              point_pmap, normal_pmap );
+}
+
+#undef DFT
 
 #endif //SWIG_CGAL_POINT_SET_PROCESSING_3_H

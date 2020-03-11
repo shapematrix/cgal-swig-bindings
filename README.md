@@ -38,13 +38,14 @@ To build the bindings on the local system, do the following:
 - In your system's CGAL installation, find the folder containing `CGALConfig.cmake` file. Examples: `/usr/lib/x86_64-linux-gnu/cmake/CGAL` (Ubuntu); `/usr/local/lib/cmake/CGAL` (Mac) 
 - From the `build3` folder, execute command
 
-`cmake -DCGAL_DIR=<the-above-folder> -DBUILD_PYTHON=ON -DBUILD_JAVA=OFF -S ../`, 
+`  cmake -DCGAL_DIR=<the-above-folder> -DBUILD_PYTHON=ON -DBUILD_JAVA=OFF -S ../`, 
 
 for example
 
-`cmake -D=/usr/local/lib/cmake/CGAL -DBUILD_PYTHON=ON -DBUILD_JAVA=OFF -S ../` (on Mac).
+`  cmake -D=/usr/local/lib/cmake/CGAL -DBUILD_PYTHON=ON -DBUILD_JAVA=OFF -S ../` (on Mac).
 
 A set of files and folders will be generated: `build-python  CMakeCache.txt  CMakeFiles  cmake_install.cmake  CTestTestfile.cmake  lib  Makefile  SWIG_CGAL`
+- For the *shapetag-creator-python* bindings be compiled properly, one migt need to edit `CMakeCache.txt` and set the variable `CMAKE_CXX_FLAGS`, as explained here [README.md](https://github.com/shapematrix/shapetag-creator-python/blob/master/README.md)
 - Staying in the `build3` folder, run the `make` command. It may take around 10 minutes to build all the targets, with some warnings generated.
 
 _NOTE_. **For MAC only**, it was necessary to exclude 2 packages: **`interpolation`** and **`Convex_hull_2`** from compilation targets because of mysterios errors about certain iterators not being forward iterators. This was done by adding conditional if(APPLE) in the `CMakeLists.txt` file at the main level of the repository.

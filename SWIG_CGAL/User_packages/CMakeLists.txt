@@ -1,1 +1,1 @@
-../../../py-octo/cgal_swig_user_packages/CMakeLists.txt
+../../../shapetag-creator-python/cgal_swig_user_packages/CMakeLists.txt
